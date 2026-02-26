@@ -1,0 +1,61 @@
+# .gitignore para SLR LLM Reviewer
+
+# Environment variables (sensitive)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Output and logs
+output/*.csv
+logs/*.log
+!output/.gitkeep
+!logs/.gitkeep
+
+# Temporary files
+*.tmp
+.cache
+.pytest_cache/
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CSV files (opcional - comente para versionar)
+# results/*.csv
