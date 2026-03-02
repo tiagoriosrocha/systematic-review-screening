@@ -112,7 +112,7 @@ class PromptBuilder:
         "justification": "sua justificativa aqui"
         }}
         """
-        
+
         return prompt.strip()
     
     def get_version(self) -> str:
@@ -200,7 +200,9 @@ class PromptBuilderEnglish(PromptBuilder):
             str: Structured prompt for the LLM.
         """
         prompt = f"""
-        TASK: Evaluate whether a scientific article should be included in a systematic review about Digital Twins.
+        Evaluate whether a scientific article should be included in a Systematic Literature Review (SLR) focused on:
+        Digital Twins + Explainable AI (XAI) + Human-centered approaches.
+
 
         {self.INCLUSION_CRITERIA}
 
