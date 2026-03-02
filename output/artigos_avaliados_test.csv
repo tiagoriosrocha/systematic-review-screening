@@ -1,0 +1,2 @@
+bibtex_id,title,decision,justification,model_name,prompt_version,execution_date,processing_time_seconds
+rayyan-471934058,Multiscale Modeling Meets Machine Learning: What Can We Learn?,não entra,"Revisão sobre ML e modelagem multiescala, não foca em Digital Twins nem XAI, e é estudo secundário (EC1, EC3).",gpt-5-petrobras,1.0,2026-03-02T10:23:51.967276,5.29885721206665

@@ -195,7 +195,7 @@ class BibTexHandler:
                 
                 # Construir note com o novo formato
                 new_note = (
-                    f'RAYYAN-INCLUSION: {{"LLM-Evaluator"=>"{decision_en}"}} | '
+
                     f'RAYYAN-EXCLUSION-REASONS: {justification}'
                 )
                 
@@ -267,7 +267,7 @@ class BibTexHandler:
                 
                 # Construir note com o novo formato
                 new_note = (
-                    f'RAYYAN-INCLUSION: {{"LLM-Evaluator"=>"{decision_en}"}} | '
+
                     f'RAYYAN-EXCLUSION-REASONS: {result.evaluation.justification}'
                 )
                 

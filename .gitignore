@@ -42,7 +42,7 @@ env/
 .DS_Store
 
 # Output and logs
-output/*.csv
+#output/*.csv
 logs/*.log
 !output/.gitkeep
 !logs/.gitkeep
