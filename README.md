@@ -46,7 +46,7 @@ slr_llm_reviewer/
 
 - **Python 3.11+**
 - **Azure OpenAI API** (configurado)
-- **Conta com acesso ao LLM** (gpt-4 recomendado)
+- **Conta com acesso ao LLM** (gpt-5 recomendado)
 
 ## Instalação
 
@@ -106,20 +106,7 @@ cp seu_arquivo.bib input/articles.bib
 
 ```bash
 cd slr_llm_reviewer
-python -m src.main
-```
-
-### Com variáveis de ambiente customizadas
-
-```bash
-# Usar temperatura diferente
-TEMPERATURE=0.5 python -m src.main
-
-# Usar modelo diferente
-LLM_MODEL=gpt-4-turbo python -m src.main
-
-# Aumentar verbosidade do log
-LOG_LEVEL=DEBUG python -m src.main
+python run.py
 ```
 
 ### Exemplos de uso programático
@@ -383,7 +370,7 @@ SELECT COUNT(*) FROM results WHERE prompt_version='1.1' AND decision='entra'
 
 **Cenário 3: Auditoría e Governança**
 ```
-"Todos os artigos processados com gpt-4 entre 2024-02-20 e 2024-02-25
+"Todos os artigos processados com gpt-5 entre 2024-02-20 e 2024-02-25
 terão valores comparáveis. Os processados depois podem diferir (novo modelo)."
 ```
 
@@ -425,133 +412,6 @@ Os critérios estão no apêndice. Código e dados estão disponíveis em [URL].
    - Forneça arquivo `.env.example` no apêndice
    - Cite data de execução e modelo específico
 
-## Logging e Debugging
-
-O sistema cria um arquivo `logs/slr_reviewer.log` com rastreamento completo.
-
-### Exemplo de log
-
-```
-2024-02-26 14:30:00,000 - __main__ - INFO - Starting SLR LLM Reviewer
-2024-02-26 14:30:00,150 - src.config - INFO - Configuration validated successfully
-2024-02-26 14:30:01,200 - src.csv_handler - INFO - Reading BibTeX file: input/articles.bib
-2024-02-26 14:30:05,450 - src.csv_handler - INFO - Successfully read 100 articles from BibTeX
-2024-02-26 14:30:05,500 - src.evaluator - INFO - Starting evaluation of article: rayyan-471934058
-2024-02-26 14:30:07,800 - src.evaluator - INFO - Article rayyan-471934058 evaluated as 'entra'
-```
-
-### Aumentar verbosidade
-
-```bash
-LOG_LEVEL=DEBUG python -m src.main
-```
-
-## Tratamento de Erros
-
-O sistema é resiliente:
-
-- ✅ **Retry automático**: Falha temporária? Tenta novamente
-- ✅ **Continua processamento**: Um artigo falho não interrompe os outros
-- ✅ **Incremental**: Pode pausar e retomar depois
-- ✅ **Validação forte**: Resposta inválida é rejeitada com motivo claro
-
-## Performance
-
-- **Tempo médio por artigo**: 2-5 segundos (depende da IA/internet)
-- **Com 1000 artigos**: ~1-2 horas
-- **Costs**: ~$0.01-0.05 por artigo (depende do modelo)
-
-## Troubleshooting
-
-### Erro: `LLM_API_KEY não configurada`
-
-```bash
-# Solução: Editar .env
-echo "LLM_API_KEY=sua_chave_aqui" >> .env
-```
-
-### Erro: `Failed to parse JSON from response`
-
-O LLM retornou resposta inválida. Solução:
-
-1. Verificar se o prompt é claro (talvez customizou mal)
-2. Reduzir TEMPERATURE para 0.3-0.5
-3. Usar modelo mais recente/potente
-4. Adicionar exemplos no prompt
-
-### Erro: `Timeout`
-
-O LLM está lento ou não responde:
-
-```bash
-# Aumentar timeout
-TIMEOUT_SECONDS=60 python -m src.main
-```
-
-## API Reference
-
-### ArticleEvaluation (Pydantic Model)
-
-```python
-class ArticleEvaluation(BaseModel):
-    decision: Literal["entra", "não entra", "pode ser"]
-    justification: str  # min_length=10
-```
-
-### EvaluationResult
-
-```python
-class EvaluationResult(BaseModel):
-    bibtex_id: str
-    title: str
-    evaluation: ArticleEvaluation
-    model_name: str        # ex: "gpt-4"
-    prompt_version: str    # ex: "1.0"
-    execution_date: datetime
-    processing_time_seconds: float
-```
-
-### Funções principais
-
-```python
-# Ler artigos
-articles = BibTexHandler.read_articles(filepath)
-
-# Avaliar artigo
-result = evaluator.evaluate(article)
-
-# Salvar resultado (incremental)
-CSVHandler.write_result(csv_path, result)
-
-# Estatísticas
-stats = CSVHandler.get_statistics(csv_path)
-```
-
-## Limitações Conhecidas
-
-1. **Qualidade LLM**: Resultado depende do LLM (mesmo com prompt perfeito)
-2. **Alucinações**: LLM pode inventar informações
-3. **Idiomas**: Prompt em português, LLM pode não entender tão bem
-4. **Contexto**: Título + metadados podem não ser suficientes (não lê PDF)
-
-## Próximos Passos
-
-- [ ] Interface web/GUI
-- [ ] Suporte a múltiplas LLMs (Anthropic, OpenAI, local)
-- [ ] Leitura de PDF completo
-- [ ] Machine Learning local para fine-tuning
-- [ ] Análise de concordância inter-rater
-- [ ] Dashboard de estatísticas
-
-## Contribuindo
-
-Melhorias são bem-vindas! Ideias:
-
-- Novos prompts/critérios
-- Otimizações de performance
-- Suporte a mais formatos de entrada
-- Visualizações dos resultados
-
 ## Referências
 
 - [Azure OpenAI API Docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference)
@@ -564,7 +424,7 @@ MIT License
 
 ## Autor
 
-Seu Nome
+Tiago Rios da Rocha
 
 ---
 

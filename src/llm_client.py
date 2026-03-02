@@ -27,7 +27,7 @@ class LLMClient:
         self.client = AzureOpenAI(
             api_key=Config.LLM_API_KEY,
             api_version=Config.LLM_API_VERSION,
-            azure_endpoint=Config.LLM_ENDPOINT,
+            base_url=Config.LLM_ENDPOINT,
         )
         self.model = Config.LLM_MODEL
         self.temperature = Config.TEMPERATURE
@@ -65,7 +65,7 @@ class LLMClient:
                         },
                         {"role": "user", "content": prompt}
                     ],
-                    temperature=self.temperature,
+                    #temperature=self.temperature,
                     timeout=self.timeout,
                 )
                 

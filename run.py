@@ -18,8 +18,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Execução interrompida pelo usuário.")
+        print("\n\n Execução interrompida pelo usuário.")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Erro fatal: {e}")
+        print(f"\n Erro fatal: {e}")
         sys.exit(1)
