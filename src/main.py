@@ -104,7 +104,7 @@ def main():
                     # Avaliar artigo
                     result = evaluator.evaluate(article)
                     
-                    # Salvar resultado incrementalmente
+                    # Salvar resultado incrementalmente no CSV
                     CSVHandler.write_result(Config.OUTPUT_CSV_FILE, result)
                 
                 except Exception as e:
@@ -113,6 +113,19 @@ def main():
                     continue
             
             logger.info("Article evaluation completed successfully")
+            
+            # Ler resultados do CSV completo
+            logger.info("Reading evaluation results from CSV...")
+            csv_results = CSVHandler.read_results(Config.OUTPUT_CSV_FILE)
+            
+            # Atualizar arquivo BibTeX com resultados da avaliação lidos do CSV
+            if csv_results:
+                logger.info(f"Updating BibTeX file with {len(csv_results)} evaluation results...")
+                BibTexHandler.update_evaluation_notes_from_csv(
+                    Config.INPUT_BIB_FILE,
+                    csv_results
+                )
+                logger.info(f"BibTeX file updated: {Config.INPUT_BIB_FILE}")
             
             # Exibir estatísticas
             stats = CSVHandler.get_statistics(Config.OUTPUT_CSV_FILE)
@@ -123,6 +136,7 @@ def main():
             logger.info("SLR LLM Reviewer finished successfully")
             logger.info("=" * 80)
             logger.info(f"Results saved to: {Config.OUTPUT_CSV_FILE}")
+            logger.info(f"BibTeX file updated: {Config.INPUT_BIB_FILE}")
         
         except KeyboardInterrupt:
             logger.warning("Processing interrupted by user")

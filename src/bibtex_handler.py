@@ -140,6 +140,153 @@ class BibTexHandler:
         logger.info(f"Updated {updated_count} abstracts in BibTeX")
 
     @staticmethod
+    def update_evaluation_notes_from_csv(
+        bib_file: str,
+        csv_results: List[Dict[str, Any]]
+    ) -> None:
+        """
+        Atualiza o campo 'note' do BibTeX com os resultados do CSV.
+        
+        Args:
+            bib_file: Caminho do arquivo BibTeX
+            csv_results: Lista de dicionários com resultados lidos do CSV
+        """
+        
+        if not csv_results:
+            logger.warning("No CSV results to update")
+            return
+
+        if not os.path.exists(bib_file):
+            raise FileNotFoundError(f"BibTeX file not found: {bib_file}")
+
+        logger.info(f"Updating BibTeX file with CSV results: {bib_file}")
+
+        try:
+            with open(bib_file, encoding="utf-8") as bibtex_file:
+                bib_database = bibtexparser.load(bibtex_file)
+
+            # Criar mapping de resultados por bibtex_id a partir do CSV
+            results_map = {
+                result["bibtex_id"]: result 
+                for result in csv_results
+            }
+
+            updated_count = 0
+
+            for entry in bib_database.entries:
+                entry_id = entry.get("ID", "")
+                
+                if entry_id not in results_map:
+                    continue
+
+                result = results_map[entry_id]
+                
+                # Determinar decision em inglês para o note
+                decision_map = {
+                    "entra": "Included",
+                    "não entra": "Excluded",
+                    "pode ser": "Maybe"
+                }
+                decision = result.get("decision", "")
+                decision_en = decision_map.get(decision, decision)
+                
+                # Obter justificativa
+                justification = result.get("justification", "")
+                
+                # Construir note com o novo formato
+                new_note = (
+                    f'RAYYAN-INCLUSION: {{"LLM-Evaluator"=>"{decision_en}"}} | '
+                    f'RAYYAN-EXCLUSION-REASONS: {justification}'
+                )
+                
+                entry["note"] = new_note
+                updated_count += 1
+                
+                logger.debug(f"Updated note for article {entry_id}: {decision_en}")
+
+            # Salvar arquivo atualizado
+            with open(bib_file, "w", encoding="utf-8") as bibtex_file:
+                bibtexparser.dump(bib_database, bibtex_file)
+
+            logger.info(f"Successfully updated {updated_count} evaluation notes in BibTeX from CSV")
+
+        except Exception as e:
+            logger.error(f"Error updating BibTeX with CSV results: {e}")
+            raise ValueError(f"Failed to update BibTeX file: {e}")
+
+    @staticmethod
+    def update_evaluation_notes(
+        bib_file: str,
+        evaluation_results: List[EvaluationResult]
+    ) -> None:
+        """
+        Atualiza o campo 'note' do BibTeX com os resultados da avaliação do LLM.
+        DEPRECATED: Use update_evaluation_notes_from_csv() instead.
+        
+        Args:
+            bib_file: Caminho do arquivo BibTeX
+            evaluation_results: Lista de resultados de avaliação
+        """
+        
+        if not evaluation_results:
+            logger.warning("No evaluation results to update")
+            return
+
+        if not os.path.exists(bib_file):
+            raise FileNotFoundError(f"BibTeX file not found: {bib_file}")
+
+        logger.info(f"Updating BibTeX file with evaluation results: {bib_file}")
+
+        try:
+            with open(bib_file, encoding="utf-8") as bibtex_file:
+                bib_database = bibtexparser.load(bibtex_file)
+
+            # Criar mapping de resultados por bibtex_id
+            results_map = {
+                result.bibtex_id: result 
+                for result in evaluation_results
+            }
+
+            updated_count = 0
+
+            for entry in bib_database.entries:
+                entry_id = entry.get("ID", "")
+                
+                if entry_id not in results_map:
+                    continue
+
+                result = results_map[entry_id]
+                
+                # Determinar decision em inglês para o note
+                decision_map = {
+                    "entra": "Included",
+                    "não entra": "Excluded",
+                    "pode ser": "Maybe"
+                }
+                decision_en = decision_map.get(result.evaluation.decision, result.evaluation.decision)
+                
+                # Construir note com o novo formato
+                new_note = (
+                    f'RAYYAN-INCLUSION: {{"LLM-Evaluator"=>"{decision_en}"}} | '
+                    f'RAYYAN-EXCLUSION-REASONS: {result.evaluation.justification}'
+                )
+                
+                entry["note"] = new_note
+                updated_count += 1
+                
+                logger.debug(f"Updated note for article {entry_id}")
+
+            # Salvar arquivo atualizado
+            with open(bib_file, "w", encoding="utf-8") as bibtex_file:
+                bibtexparser.dump(bib_database, bibtex_file)
+
+            logger.info(f"Successfully updated {updated_count} evaluation notes in BibTeX")
+
+        except Exception as e:
+            logger.error(f"Error updating BibTeX with evaluation results: {e}")
+            raise ValueError(f"Failed to update BibTeX file: {e}")
+
+    @staticmethod
     def _fetch_abstract_from_url(url: str) -> Optional[str]:
 
         if not url:
