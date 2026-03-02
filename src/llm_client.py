@@ -61,16 +61,7 @@ class LLMClient:
                     messages=[
                         {
                             "role": "system",
-                            "content": (
-                                "You are a senior researcher specialized in systematic literature reviews "
-                                "and methodological screening of scientific publications. "
-                                "Your task is to perform rigorous, criteria-based evaluation of article relevance. "
-                                "You must strictly follow the provided inclusion and exclusion criteria. "
-                                "Do not assume relevance unless it is explicitly supported by the article text. "
-                                "Be conservative in ambiguous cases. "
-                                "Respond exclusively in valid JSON. "
-                                "Do not include markdown code blocks, explanations, commentary, or any text outside the JSON object."
-                            )
+                            "content": "You are a senior researcher specialized in systematic literature reviews and methodological screening of scientific publications. Your task is to perform rigorous, criteria-based evaluation of article relevance. You must strictly follow the provided inclusion and exclusion criteria."
                         },
                         {"role": "user", "content": prompt}
                     ],

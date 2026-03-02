@@ -182,10 +182,14 @@ class BibTexHandler:
                 result = results_map[entry_id]
                 
                 # Determinar decision em inglês para o note
+                # Suporta tanto versão em português quanto em inglês
                 decision_map = {
                     "entra": "Included",
                     "não entra": "Excluded",
-                    "pode ser": "Maybe"
+                    "pode ser": "Maybe",
+                    "include": "Included",      # English versions
+                    "exclude": "Excluded",
+                    "maybe": "Maybe"
                 }
                 decision = result.get("decision", "")
                 decision_en = decision_map.get(decision, decision)

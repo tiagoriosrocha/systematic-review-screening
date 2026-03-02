@@ -18,7 +18,7 @@ from src.config import Config
 from src.csv_handler import CSVHandler
 from src.bibtex_handler import BibTexHandler
 from src.evaluator import ArticleEvaluator
-from src.prompt_builder import PromptBuilder
+from src.prompt_builder import PromptBuilder, PromptBuilderEnglish
 
 
 # Configurar logging
@@ -84,7 +84,9 @@ def main():
             return
         
         # Criar avaliador
-        prompt_builder = PromptBuilder.create_v1_0()
+        # Use PromptBuilder.create_v1_0() para português
+        # Use PromptBuilderEnglish.create_v2_0() para inglês
+        prompt_builder = PromptBuilderEnglish.create_v2_0()
         evaluator = ArticleEvaluator(prompt_builder=prompt_builder)
         
         logger.info("Article Evaluator initialized")

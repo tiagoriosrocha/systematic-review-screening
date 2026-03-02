@@ -15,11 +15,15 @@ class ArticleEvaluation(BaseModel):
     Modelo para representar a avaliação de um artigo.
     
     Valida a resposta do LLM conforme esperado.
+    Aceita decisões em português ou inglês.
     """
     
-    decision: Literal["entra", "não entra", "pode ser"] = Field(
+    decision: Literal[
+        "entra", "não entra", "pode ser",  # Portuguese
+        "include", "exclude", "maybe"       # English
+    ] = Field(
         ..., 
-        description="Decisão de inclusão do artigo"
+        description="Decisão de inclusão do artigo (português ou inglês)"
     )
     justification: str = Field(
         ..., 
@@ -31,7 +35,10 @@ class ArticleEvaluation(BaseModel):
     @classmethod
     def validate_decision(cls, v: str) -> str:
         """Valida que a decisão é uma das opções permitidas."""
-        valid_decisions = ["entra", "não entra", "pode ser"]
+        valid_decisions = [
+            "entra", "não entra", "pode ser",  # Portuguese
+            "include", "exclude", "maybe"       # English
+        ]
         if v not in valid_decisions:
             raise ValueError(
                 f"Decision must be one of {valid_decisions}, got: {v}"
@@ -51,8 +58,8 @@ class ArticleEvaluation(BaseModel):
         str_strip_whitespace = True
         json_schema_extra = {
             "example": {
-                "decision": "entra",
-                "justification": "O artigo aborda digital twins em manufatura, alinhado com o escopo da revisão sistemática."
+                "decision": "include",
+                "justification": "The article addresses digital twins in manufacturing, aligned with the scope of the systematic review."
             }
         }
 
