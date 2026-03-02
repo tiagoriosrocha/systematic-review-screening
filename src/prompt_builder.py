@@ -73,44 +73,73 @@ class PromptBuilder:
             str: Prompt estruturado para o LLM.
         """
         prompt = f"""
-TAREFA: Avaliar se um artigo científico deve ser incluído em uma revisão sistemática sobre Digital Twins.
+TASK:
+Evaluate whether a scientific article should be included in a Systematic Literature Review (SLR) focused on:
 
+Digital Twins + Explainable AI (XAI) + Human-centered approaches.
+
+You must carefully assess the article based strictly on the inclusion and exclusion criteria provided below.
+
+-----------------------------
+INCLUSION CRITERIA:
 {self.INCLUSION_CRITERIA}
 
+EXCLUSION CRITERIA:
 {self.EXCLUSION_CRITERIA}
+-----------------------------
 
-ARTIGO A AVALIAR:
+ARTICLE TO EVALUATE:
 ---
 ID: {article.bibtex_id}
-Título: {article.title}
-Ano: {article.year}
-Autores: {article.authors if article.authors else "Não fornecidos"}
-Periódico: {article.journal if article.journal else "Não fornecido"}
-DOI: {article.doi if article.doi else "Não fornecido"}
-URL: {article.url if article.url else "Não fornecida"}
-Resumo: {article.abstract if article.abstract else "Não fornecido"}
+Title: {article.title}
+Year: {article.year}
+Authors: {article.authors if article.authors else "Not provided"}
+Journal: {article.journal if article.journal else "Not provided"}
+DOI: {article.doi if article.doi else "Not provided"}
+URL: {article.url if article.url else "Not provided"}
+Abstract: {article.abstract if article.abstract else "Not provided"}
 ---
 
-{f"CONTEXTO ADICIONAL:\\n{criteria_context}\\n" if criteria_context else ""}
+{f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
 
-INSTRUÇÃO DE RESPOSTA:
-Você DEVE responder EXCLUSIVAMENTE em JSON válido, sem texto adicional.
-Não inclua marcadores de código (```), apenas o JSON puro.
+EVALUATION INSTRUCTIONS:
 
-Analise o artigo baseado nos critérios acima e forneça:
-1. "decision": Uma das três opções: "entra", "não entra" ou "pode ser"
-   - "entra": O artigo claramente atende aos critérios de inclusão
-   - "não entra": O artigo claramente não atende aos critérios
-   - "pode ser": Há dúvida e o artigo needs revisão adicional
+1. Focus primarily on the abstract when determining relevance.
+2. If the abstract is missing or insufficient, rely on title and metadata.
+3. Be conservative in ambiguous cases.
+4. The article must explicitly address Digital Twins AND at least one of:
+   - Explainability / Explainable AI / Transparency
+   - Human-in-the-loop / Human-centered decision support
+5. If the article only mentions generic AI, ML, IoT, or cyber-physical systems without clear linkage to Digital Twins, it should NOT be included.
+6. If the connection to explainability or human-centered aspects is weak or unclear, classify as "pode ser".
+7. Do NOT assume relevance unless it is clearly supported by the text.
 
-2. "justification": Uma justificativa clara e concisa (mínimo 20 caracteres)
-   explicando o motivo da decisão baseado nos critérios
+-----------------------------
 
-RESPOSTA (JSON VÁLIDO SEM BACKTICKS):
-{{
+RESPONSE INSTRUCTIONS:
+
+You MUST respond exclusively in valid JSON.
+Do NOT include explanations outside the JSON.
+Do NOT include markdown code blocks (no ```).
+Return only raw JSON.
+
+Provide:
+
+1. "decision": One of exactly three options:
+   - "entra" (clearly satisfies inclusion criteria)
+   - "não entra" (clearly does not satisfy criteria)
+   - "pode ser" (uncertain / requires manual review)
+
+2. "justification": A concise but precise explanation (minimum 20 characters) explicitly referencing which criteria were met or not met.
+
+-----------------------------
+
+VALID JSON RESPONSE FORMAT (NO BACKTICKS):
+
+{
   "decision": "entra|não entra|pode ser",
-  "justification": "sua justificativa aqui"
-}}
+  "justification": "Clear reasoning based on criteria."
+}
 """
         return prompt.strip()
     
