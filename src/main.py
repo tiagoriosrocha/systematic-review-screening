@@ -15,7 +15,8 @@ from tqdm import tqdm
 from datetime import datetime
 
 from src.config import Config
-from src.csv_handler import BibTexHandler, CSVHandler
+from src.csv_handler import CSVHandler
+from src.bibtex_handler import BibTexHandler
 from src.evaluator import ArticleEvaluator
 from src.prompt_builder import PromptBuilder
 
