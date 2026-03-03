@@ -38,7 +38,7 @@ class Config:
     LOGS_DIR: str = os.path.join(BASE_DIR, "logs")
     
     INPUT_BIB_FILE: str = os.path.join(INPUT_DIR, "articles.bib")
-    OUTPUT_CSV_FILE: str = os.path.join(OUTPUT_DIR, "artigos_avaliados.csv")
+    OUTPUT_CSV_FILE: str = os.path.join(OUTPUT_DIR, "artigos_avaliados_v2.csv")
     LOG_FILE: str = os.path.join(LOGS_DIR, "slr_reviewer.log")
     
     # ====== LOGGING ======
