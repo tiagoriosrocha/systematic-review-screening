@@ -215,9 +215,6 @@ class PromptBuilderPhase2(PromptBuilder):
          OR incorporates human-in-the-loop, human-on-the-loop,
          or human-centered interaction mechanisms.
 
-    IC4. The article describes or evaluates the explanation process,
-         architecture design, or interaction design within the Digital Twin system.
-
     NOTE:
     All criteria must be explicitly supported by the abstract or metadata.
     """
@@ -225,17 +222,16 @@ class PromptBuilderPhase2(PromptBuilder):
     EXCLUSION_CRITERIA = """
     EXCLUSION CRITERIA:
 
-    EC1. Digital Twin is not central.
+    EC1. The article is clearly unrelated to Digital Twins.
 
-    EC2. Explainability or human-centered aspects are not explicitly described.
+    EC2. The article focuses exclusively on predictive or simulation models
+         within Digital Twins without any reference to explainability,
+         transparency, or human-related aspects.
 
-    EC3. The article applies predictive models without discussing
-         explanation or interaction mechanisms.
+    EC3. Short abstracts, posters, tutorials, non-peer-reviewed material,
+         or secondary studies (e.g., systematic reviews or surveys).
 
-    EC4. Secondary studies, systematic reviews, surveys, posters,
-         tutorials, or non-peer-reviewed material.
-
-    EC5. Publications without an English abstract.
+    EC4. Publications without an English title or English abstract.
     """
 
     def get_system_message(self) -> str:
