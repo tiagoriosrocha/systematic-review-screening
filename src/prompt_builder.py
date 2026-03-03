@@ -244,6 +244,9 @@ class PromptBuilderPhase2(PromptBuilder):
         This phase requires explicit evidence of ALL inclusion criteria.
         Do not rely on implicit assumptions.
 
+        PHASE 1 ASSESSMENT (for reference only):
+        {f"Previous justification: {criteria_context}" if criteria_context else "Not available"}
+
         {self.INCLUSION_CRITERIA}
 
         {self.EXCLUSION_CRITERIA}

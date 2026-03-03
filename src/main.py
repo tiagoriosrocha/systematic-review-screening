@@ -118,6 +118,18 @@ def main():
         
         # Ler resultados da Phase 1 (apenas os "include" e "maybe")
         phase1_results = CSVHandler.read_results(Config.OUTPUT_CSV_PHASE1)
+        
+        # Criar mapa de justificativas da Phase 1: bibtex_id → justification
+        justifications_map = {}
+        for result in phase1_results:
+            bibtex_id = result.get("bibtex_id")
+            justification = result.get("justification", "")
+            decision = result.get("decision")
+            
+            if decision in ["include", "maybe"]:
+                justifications_map[bibtex_id] = justification
+        
+        logger.info(f"Phase 1 justifications loaded: {len(justifications_map)}")
         articles_for_phase2 = [
             r for r in phase1_results 
             if r.get("decision") in ["include", "maybe"]
@@ -148,7 +160,13 @@ def main():
                     unit="article"
                 ):
                     try:
-                        result = evaluator_phase2.evaluate(article)
+                        # Recuperar justificativa da Phase 1 como contexto
+                        phase1_justification = justifications_map.get(article.bibtex_id, "")
+                        
+                        result = evaluator_phase2.evaluate(
+                            article,
+                            additional_context=phase1_justification
+                        )
                         CSVHandler.write_result(Config.OUTPUT_CSV_PHASE2, result)
                     except Exception as e:
                         logger.error(f"Error evaluating article {article.bibtex_id} (Phase 2): {str(e)}")
