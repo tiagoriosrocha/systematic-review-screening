@@ -43,9 +43,10 @@ class Config:
     # Generate timestamp for unique filenames
     _TIMESTAMP: str = datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
     
-    # CSV files for two-stage screening with timestamp
-    OUTPUT_CSV_PHASE1: str = os.path.join(OUTPUT_DIR, f"artigos_fase1_screening_{_TIMESTAMP}.csv")
-    OUTPUT_CSV_PHASE2: str = os.path.join(OUTPUT_DIR, f"artigos_fase2_screening_{_TIMESTAMP}.csv")
+    # CSV files for three-stage screening with timestamp
+    OUTPUT_CSV_PHASE1: str = os.path.join(OUTPUT_DIR, f"phase1_broad_screening_{_TIMESTAMP}.csv")
+    OUTPUT_CSV_PHASE2: str = os.path.join(OUTPUT_DIR, f"phase2_strict_screening_{_TIMESTAMP}.csv")
+    OUTPUT_CSV_PHASE3: str = os.path.join(OUTPUT_DIR, f"phase3_adjudication_{_TIMESTAMP}.csv")
     
     # Legacy (deprecated)
     OUTPUT_CSV_FILE: str = os.path.join(OUTPUT_DIR, "artigos_avaliados_v2.csv")
@@ -104,5 +105,6 @@ class Config:
             "INPUT_BIB_FILE": cls.INPUT_BIB_FILE,
             "OUTPUT_CSV_PHASE1": cls.OUTPUT_CSV_PHASE1,
             "OUTPUT_CSV_PHASE2": cls.OUTPUT_CSV_PHASE2,
+            "OUTPUT_CSV_PHASE3": cls.OUTPUT_CSV_PHASE3,
             "LOG_FILE": cls.LOG_FILE,
         }
