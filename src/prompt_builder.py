@@ -25,8 +25,8 @@ class PromptBuilder(ABC):
         Returns:
             str: Conteúdo do role "system".
         """
-        pass
-    
+        return self.SYSTEM_PROMPT
+
     @abstractmethod
     def build_evaluation_prompt(
         self, 
@@ -129,8 +129,6 @@ class PromptBuilderPhase1(PromptBuilder):
     EC4. Publications without an English title or English abstract.
     """
 
-    def get_system_message(self) -> str:
-        return self.SYSTEM_PROMPT
 
     def build_evaluation_prompt(
         self,
@@ -233,9 +231,6 @@ class PromptBuilderPhase2(PromptBuilder):
 
     EC4. Publications without an English title or English abstract.
     """
-
-    def get_system_message(self) -> str:
-        return self.SYSTEM_PROMPT
 
     def build_evaluation_prompt(
         self,
