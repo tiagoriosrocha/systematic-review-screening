@@ -51,7 +51,8 @@ src/
 ├── llm_client.py      # Cliente Azure OpenAI
 ├── prompt_builder.py  # Prompts das 3 fases (abstrato + concreto)
 ├── evaluator.py       # Orquestrador LLM
-├── csv_handler.py     # I/O BibTeX/CSV
+├── csv_handler.py     # Manipulação CSV
+├── bibtex_handler.py  # Manipulação BibTeX
 └── main.py           # Execução das 3 fases
 ```
 
