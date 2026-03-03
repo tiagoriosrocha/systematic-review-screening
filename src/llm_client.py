@@ -37,12 +37,12 @@ class LLMClient:
         
         logger.info(f"LLM Client initialized with model: {self.model}")
     
-    def call_llm(self, prompt: str) -> str:
+    def call_llm(self, messages: list[dict]) -> str:
         """
         Chama o LLM com retry automático.
         
         Args:
-            prompt: Prompt para enviar ao LLM.
+            messages: Lista com mensagens no formato OpenAI.
         
         Returns:
             str: Resposta do LLM.
@@ -58,13 +58,7 @@ class LLMClient:
                 
                 response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are a senior researcher specialized in systematic literature reviews and methodological screening of scientific publications. Your task is to perform rigorous, criteria-based evaluation of article relevance. You must strictly follow the provided inclusion and exclusion criteria."
-                        },
-                        {"role": "user", "content": prompt}
-                    ],
+                    messages=messages,
                     #temperature=self.temperature,
                     timeout=self.timeout,
                 )
@@ -100,14 +94,14 @@ class LLMClient:
             f"Last error: {str(last_error)}"
         )
     
-    def call_llm_for_json(self, prompt: str) -> Dict[str, Any]:
+    def call_llm_for_json(self, messages: list[dict]) -> Dict[str, Any]:
         """
         Chama o LLM e espera uma resposta JSON.
         
         Trata erros de JSON e tenta extrair JSON inválido.
         
         Args:
-            prompt: Prompt para enviar ao LLM.
+            messages: Lista com mensagens no formato OpenAI.
         
         Returns:
             dict: Dicionário com a resposta parseada.
@@ -115,7 +109,7 @@ class LLMClient:
         Raises:
             ValueError: Se não conseguir extrair JSON válido da resposta.
         """
-        response_text = self.call_llm(prompt)
+        response_text = self.call_llm(messages)
         
         try:
             # Tenta fazer parse direto

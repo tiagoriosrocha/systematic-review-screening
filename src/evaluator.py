@@ -12,7 +12,7 @@ from typing import Optional
 
 from src.models import Article, ArticleEvaluation, EvaluationResult
 from src.llm_client import LLMClient
-from src.prompt_builder import PromptBuilder
+from src.prompt_builder import PromptBuilder, PromptBuilderPhase1, PromptBuilderPhase2
 from src.config import Config
 
 
@@ -36,7 +36,7 @@ class ArticleEvaluator:
             prompt_builder: PromptBuilder customizado (opcional).
             llm_client: LLMClient customizado (opcional).
         """
-        self.prompt_builder = prompt_builder or PromptBuilder.create_v1_0()
+        self.prompt_builder = prompt_builder or PromptBuilderPhase1()
         self.llm_client = llm_client or LLMClient()
     
     def evaluate(
@@ -62,17 +62,14 @@ class ArticleEvaluator:
         logger.info(f"Starting evaluation of article: {article.bibtex_id}")
         logger.debug(f"Article title: {article.title}")
         
-        # Construir prompt
-        prompt = self.prompt_builder.build_evaluation_prompt(
-            article=article,
-            criteria_context=additional_context
-        )
-        
-        logger.debug(f"Prompt built (length: {len(prompt)})")
-        
         try:
+            # Construir mensagens com artigo
+            messages = self.prompt_builder.build_messages(article, additional_context)
+            
+            logger.debug(f"Messages built (length: {len(str(messages))})")
+            
             # Chamar LLM
-            response_dict = self.llm_client.call_llm_for_json(prompt)
+            response_dict = self.llm_client.call_llm_for_json(messages)
             
             logger.debug(f"LLM response: {response_dict}")
             
@@ -92,7 +89,7 @@ class ArticleEvaluator:
                 title=article.title,
                 evaluation=evaluation,
                 model_name=Config.LLM_MODEL,
-                prompt_version=self.prompt_builder.get_version(),
+                prompt_version=self.prompt_builder.__class__.__name__,
                 execution_date=datetime.now(),
                 processing_time_seconds=processing_time
             )
@@ -122,7 +119,7 @@ class ArticleEvaluator:
         """
         return {
             "model_name": Config.LLM_MODEL,
-            "prompt_version": self.prompt_builder.get_version(),
+            "prompt_builder": self.prompt_builder.__class__.__name__,
             "temperature": Config.TEMPERATURE,
             "max_retries": Config.MAX_RETRIES,
         }

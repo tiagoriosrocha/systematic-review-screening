@@ -5,58 +5,29 @@ Este módulo é responsável por construir prompts estruturados
 e otimizados para a tarefa de triagem de artigos científicos.
 """
 
+from abc import ABC, abstractmethod
 from typing import Optional
 from src.models import Article
 
 
-class PromptBuilder:
+class PromptBuilder(ABC):
     """
-    Construtor de prompts para avaliação de artigos.
+    Classe abstrata para construtor de prompts.
     
-    Permite criar prompts estruturados e versionar diferentes estratégias de avaliação.
-    """
-    
-    # Definição dos critérios de inclusão
-    INCLUSION_CRITERIA = """
-    CRITÉRIOS DE INCLUSÃO:
-    
-    IC1. Artigos onde Digital Twin é um conceito central da arquitetura, sistema ou framework proposto.
-    
-    IC2. Artigos que propõem, implementam, avaliam ou discutem formalmente técnicas de explicabilidade,
-         interpretabilidade, transparência ou XAI (eXplainable AI) no contexto de Digital Twins.
-    
-    IC3. Artigos que explicitamente definem papéis humanos (ex: operador, tomador de decisão) ou
-         incorporam mecanismos de human-in-the-loop, human-on-the-loop ou interação centrada no
-         humano dentro do sistema de Digital Twin.
-    
-    IC4. Artigos que descrevem ou avaliam o processo de explicação, arquitetura ou design de
-         interação dentro de um sistema de Digital Twin.
+    Define a interface comum para diferentes implementações de construtores de prompts.
     """
     
-    EXCLUSION_CRITERIA = """
-    CRITÉRIOS DE EXCLUSÃO:
-    
-    EC1. Artigos não relacionados a Digital Twins.
-    
-    EC2. Artigos que aplicam modelos preditivos dentro de Digital Twins sem propor, avaliar ou
-         discutir mecanismos de explicabilidade ou interpretabilidade.
-    
-    EC3. Resumos curtos, posters, tutoriais, material não revisado por pares, estudos secundários
-         ou revisões sistemáticas.
-    
-    EC4. Publicações em idiomas que não inglês (artigos em português ou espanhol devem ter
-         versão ou resumo em inglês).
-    """
-    
-    def __init__(self, version: str = "1.0"):
+    @abstractmethod
+    def get_system_message(self) -> str:
         """
-        Inicializa o construtor de prompts.
+        Retorna a mensagem do sistema para o LLM.
         
-        Args:
-            version: Versão do prompt (para rastreabilidade científica).
+        Returns:
+            str: Conteúdo do role "system".
         """
-        self.version = version
+        pass
     
+    @abstractmethod
     def build_evaluation_prompt(
         self, 
         article: Article,
@@ -72,143 +43,222 @@ class PromptBuilder:
         Returns:
             str: Prompt estruturado para o LLM.
         """
+        pass
+    
+    def build_messages(
+        self,
+        article: Article,
+        criteria_context: Optional[str] = None
+    ) -> list[dict]:
+        """
+        Constrói a estrutura completa de mensagens com roles "system" e "user".
+        
+        Args:
+            article: Artigo a ser avaliado.
+            criteria_context: Contexto adicional sobre critérios (opcional).
+        
+        Returns:
+            list[dict]: Lista com dicionários contendo "role" e "content".
+        """
+        return [
+            {
+                "role": "system",
+                "content": self.get_system_message()
+            },
+            {
+                "role": "user",
+                "content": self.build_evaluation_prompt(article, criteria_context)
+            }
+        ]
+
+
+
+
+
+
+
+class PromptBuilderPhase1(PromptBuilder):
+    """
+    Phase 1 - Broad Screening (High Recall)
+
+    Goal: Maximize sensitivity and avoid excluding potentially relevant studies.
+    """
+
+    SYSTEM_PROMPT = """
+    You are a senior researcher specialized in systematic literature reviews.
+
+    You are performing the FIRST screening phase of a two-stage selection process.
+    This phase prioritizes sensitivity (recall) over specificity.
+
+    Your objective is to avoid prematurely excluding potentially relevant studies.
+    When evidence is partial or unclear, prefer selecting "maybe" instead of "exclude".
+
+    You must strictly follow the provided inclusion and exclusion criteria.
+    Respond only with valid JSON.
+    """
+
+    INCLUSION_CRITERIA = """
+    INCLUSION CRITERIA:
+
+    IC1. The article discusses Digital Twins as a relevant or central concept 
+         of the system, architecture, framework, or conceptual proposal.
+
+    IC2. The article mentions, explores, or relates to explainability, interpretability,
+         transparency, XAI, or human interaction aspects in the context of Digital Twins.
+
+    NOTE:
+    For Phase 1, it is sufficient that:
+        - Digital Twin is relevant AND
+        - At least one of the following appears:
+            (a) explainability-related aspects OR
+            (b) human-centered or interaction aspects
+    """
+
+    EXCLUSION_CRITERIA = """
+    EXCLUSION CRITERIA:
+
+    EC1. The article is clearly unrelated to Digital Twins.
+
+    EC2. The article focuses exclusively on predictive or simulation models
+         within Digital Twins without any reference to explainability,
+         transparency, or human-related aspects.
+
+    EC3. Short abstracts, posters, tutorials, non-peer-reviewed material,
+         or secondary studies (e.g., systematic reviews or surveys).
+
+    EC4. Publications without an English title or English abstract.
+    """
+
+    def get_system_message(self) -> str:
+        return self.SYSTEM_PROMPT
+
+    def build_evaluation_prompt(
+        self,
+        article: Article,
+        criteria_context: Optional[str] = None
+    ) -> str:
+
         prompt = f"""
-        TAREFA: Avaliar se um artigo científico deve ser incluído em uma revisão sistemática sobre Digital Twins.
+        TASK:
+        Perform Phase 1 screening of a scientific article.
+
+        This is a BROAD screening phase.
+        If relevance is plausible but not fully explicit, select "maybe".
 
         {self.INCLUSION_CRITERIA}
 
         {self.EXCLUSION_CRITERIA}
 
-        ARTIGO A AVALIAR:
+        ARTICLE:
         ---
         ID: {article.bibtex_id}
-        Título: {article.title}
-        Ano: {article.year}
-        Autores: {article.authors if article.authors else "Não fornecidos"}
-        Periódico: {article.journal if article.journal else "Não fornecido"}
-        DOI: {article.doi if article.doi else "Não fornecido"}
-        URL: {article.url if article.url else "Não fornecida"}
-        Resumo: {article.abstract if article.abstract else "Não fornecido"}
+        Title: {article.title}
+        Year: {article.year}
+        Authors: {article.authors if article.authors else "Not provided"}
+        Journal: {article.journal if article.journal else "Not provided"}
+        DOI: {article.doi if article.doi else "Not provided"}
+        Abstract: {article.abstract if article.abstract else "Not provided"}
         ---
 
-        {f"CONTEXTO ADICIONAL:\\n{criteria_context}\\n" if criteria_context else ""}
+        {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
 
-        INSTRUÇÃO DE RESPOSTA:
-        Você DEVE responder EXCLUSIVAMENTE em JSON válido, sem texto adicional.
-        Não inclua marcadores de código (```), apenas o JSON puro.
+        DECISION RULES:
 
-        Analise o artigo baseado nos critérios acima e forneça:
-        1. "decision": Uma das três opções: "entra", "não entra" ou "pode ser"
-        - "entra": O artigo claramente atende aos critérios de inclusão
-        - "não entra": O artigo claramente não atende aos critérios
-        - "pode ser": Há dúvida e o artigo needs revisão adicional
+        - "include" → Clearly satisfies Phase 1 inclusion logic.
+        - "maybe"   → Partially satisfies criteria or insufficient clarity.
+        - "exclude" → Clearly violates inclusion criteria.
 
-        2. "justification": Uma justificativa clara e concisa (mínimo 20 caracteres)
-        explicando o motivo da decisão baseado nos critérios
-
-        RESPOSTA (JSON VÁLIDO SEM BACKTICKS):
+        RESPONSE FORMAT (VALID JSON ONLY):
         {{
-        "decision": "entra|não entra|pode ser",
-        "justification": "sua justificativa aqui"
+          "decision": "include|exclude|maybe",
+          "justification": "Concise explanation grounded in the criteria"
         }}
         """
 
         return prompt.strip()
-    
-    def get_version(self) -> str:
-        """
-        Retorna a versão atual do prompt.
-        
-        Returns:
-            str: Versão do prompt.
-        """
-        return self.version
-    
-    @staticmethod
-    def create_v1_0() -> "PromptBuilder":
-        """Factory method para criar um PromptBuilder versão 1.0."""
-        return PromptBuilder(version="1.0")
 
 
 
 
 
 
-class PromptBuilderEnglish(PromptBuilder):
+class PromptBuilderPhase2(PromptBuilder):
     """
-    English version of the prompt builder for article evaluation.
-    
-    This class provides English prompts with inclusion and exclusion criteria
-    for systematic literature review on Digital Twins.
+    Phase 2 - Strict Screening (High Precision)
+
+    Goal: Maximize specificity and ensure conceptual alignment.
     """
-    
-    # Inclusion criteria in English
+
+    SYSTEM_PROMPT = """
+    You are a senior researcher specialized in systematic literature reviews.
+
+    You are performing the SECOND screening phase of a two-stage selection process.
+    This phase prioritizes specificity and conceptual precision.
+
+    Only include articles that clearly and explicitly satisfy ALL required criteria.
+    Do not infer missing elements.
+    If key elements are not explicitly described, do not assume they exist.
+
+    Respond only with valid JSON.
+    """
+
     INCLUSION_CRITERIA = """
-    INCLUSION CRITERIA:
-    
-    IC1. Articles where Digital Twin is a central concept of the proposed architecture, system, or framework.
-    
-    IC2. Articles that propose, implement, evaluate, or formally discuss explainability, 
-         interpretability, transparency, or XAI (eXplainable AI) techniques in the context of Digital Twins.
-    
-    IC3. Articles that explicitly define human roles (e.g., operator, decision-maker) or 
-         incorporate human-in-the-loop, human-on-the-loop, or human-centered interaction mechanisms 
-         within the Digital Twin system.
-    
-    IC4. Articles that describe or evaluate the explanation process, architecture, or interaction 
-         design within a Digital Twin system.
+    INCLUSION CRITERIA (ALL must be satisfied):
+
+    IC1. Digital Twin is a central concept of the proposed architecture, system, or framework.
+
+    IC2. The article explicitly proposes, implements, evaluates, or formally discusses
+         explainability, interpretability, transparency, or XAI mechanisms
+         within the Digital Twin context.
+
+    IC3. The article explicitly defines human roles (e.g., operator, decision-maker)
+         OR incorporates human-in-the-loop, human-on-the-loop,
+         or human-centered interaction mechanisms.
+
+    IC4. The article describes or evaluates the explanation process,
+         architecture design, or interaction design within the Digital Twin system.
+
+    NOTE:
+    All criteria must be explicitly supported by the abstract or metadata.
     """
-    
-    # Exclusion criteria in English
+
     EXCLUSION_CRITERIA = """
     EXCLUSION CRITERIA:
-    
-    EC1. Articles not related to Digital Twins.
-    
-    EC2. Articles that apply predictive models within Digital Twins without proposing, evaluating, 
-         or discussing explainability or interpretability mechanisms.
-    
-    EC3. Short abstracts, posters, tutorials, non-peer-reviewed material, secondary studies, 
-         or systematic reviews.
-    
-    EC4. Publications in languages other than English (articles in Portuguese or Spanish must have 
-         an English version or abstract).
+
+    EC1. Digital Twin is not central.
+
+    EC2. Explainability or human-centered aspects are not explicitly described.
+
+    EC3. The article applies predictive models without discussing
+         explanation or interaction mechanisms.
+
+    EC4. Secondary studies, systematic reviews, surveys, posters,
+         tutorials, or non-peer-reviewed material.
+
+    EC5. Publications without an English abstract.
     """
-    
-    def __init__(self, version: str = "2.0"):
-        """
-        Initialize the English prompt builder.
-        
-        Args:
-            version: Prompt version (for scientific traceability).
-        """
-        super().__init__(version=version)
-    
+
+    def get_system_message(self) -> str:
+        return self.SYSTEM_PROMPT
+
     def build_evaluation_prompt(
-        self, 
+        self,
         article: Article,
         criteria_context: Optional[str] = None
     ) -> str:
-        """
-        Build a prompt for evaluating a scientific article.
-        
-        Args:
-            article: Article to be evaluated.
-            criteria_context: Additional context about criteria (optional).
-        
-        Returns:
-            str: Structured prompt for the LLM.
-        """
-        prompt = f"""
-        Evaluate whether a scientific article should be included in a Systematic Literature Review (SLR) focused on:
-        Digital Twins + Explainable AI (XAI) + Human-centered approaches.
 
+        prompt = f"""
+        TASK:
+        Perform Phase 2 strict screening of a scientific article.
+
+        This phase requires explicit evidence of ALL inclusion criteria.
+        Do not rely on implicit assumptions.
 
         {self.INCLUSION_CRITERIA}
 
         {self.EXCLUSION_CRITERIA}
 
-        ARTICLE TO EVALUATE:
+        ARTICLE:
         ---
         ID: {article.bibtex_id}
         Title: {article.title}
@@ -220,31 +270,19 @@ class PromptBuilderEnglish(PromptBuilder):
         Abstract: {article.abstract if article.abstract else "Not provided"}
         ---
 
-        {f"ADDITIONAL CONTEXT:\\n{criteria_context}\\n" if criteria_context else ""}
+        {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
 
-        RESPONSE INSTRUCTION:
-        You MUST respond EXCLUSIVELY in valid JSON format, with no additional text.
-        Do not include code markers (```), only the raw JSON.
+        DECISION RULES:
 
-        Analyze the article based on the criteria above and provide:
-        1. "decision": One of three options: "include", "exclude", or "maybe"
-        - "include": The article clearly meets the inclusion criteria
-        - "exclude": The article clearly does not meet the criteria
-        - "maybe": There is doubt and the article requires additional review
+        - "include" → ALL inclusion criteria explicitly satisfied.
+        - "maybe"   → Minor ambiguity but strong alignment.
+        - "exclude" → Any required criterion missing.
 
-        2. "justification": A clear and concise justification (minimum 20 characters)
-        explaining the decision based on the criteria
-
-        RESPONSE (VALID JSON WITHOUT BACKTICKS):
+        RESPONSE FORMAT (VALID JSON ONLY):
         {{
-        "decision": "include|exclude|maybe",
-        "justification": "your justification here"
+          "decision": "include|exclude|maybe",
+          "justification": "Precise explanation referencing unmet or satisfied criteria"
         }}
         """
 
         return prompt.strip()
-    
-    @staticmethod
-    def create_v2_0() -> "PromptBuilderEnglish":
-        """Factory method to create an English PromptBuilder version 2.0."""
-        return PromptBuilderEnglish(version="2.0")

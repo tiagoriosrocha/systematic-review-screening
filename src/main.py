@@ -18,7 +18,7 @@ from src.config import Config
 from src.csv_handler import CSVHandler
 from src.bibtex_handler import BibTexHandler
 from src.evaluator import ArticleEvaluator
-from src.prompt_builder import PromptBuilder, PromptBuilderEnglish
+from src.prompt_builder import PromptBuilderPhase1, PromptBuilderPhase2
 
 
 # Configurar logging
@@ -47,98 +47,127 @@ def setup_logging():
 
 def main():
     """
-    Função principal que orquestra todo o processamento.
+    Função principal que orquestra todo o processamento em duas fases.
+    
+    Fluxo:
+    1. FASE 1: Broad Screening (High Recall) → artigos_fase1_screening.csv
+    2. FASE 2: Strict Screening (High Precision) → artigos_fase2_screening.csv
     """
     # Configurar logging
     logger = setup_logging()
     
     logger.info("=" * 80)
-    logger.info("Starting SLR LLM Reviewer")
+    logger.info("Starting Two-Stage SLR LLM Screening")
     logger.info("=" * 80)
     
     try:
         # Validar configurações
         Config.validate()
         logger.info("Configuration validated successfully")
-        logger.info(f"Configuration: {Config.to_dict()}")
         
         # Ler artigos do BibTeX
         logger.info(f"Reading articles from: {Config.INPUT_BIB_FILE}")
         articles = BibTexHandler.read_articles(Config.INPUT_BIB_FILE)
         logger.info(f"Total articles in BibTeX: {len(articles)}")
         
-        # Obter IDs já processados
-        already_processed = CSVHandler.get_processed_ids(Config.OUTPUT_CSV_FILE)
-        articles_to_process = [
+        # ====== FASE 1: Broad Screening ======
+        logger.info("=" * 80)
+        logger.info("PHASE 1: Broad Screening (High Recall)")
+        logger.info("=" * 80)
+        
+        already_processed_phase1 = CSVHandler.get_processed_ids(Config.OUTPUT_CSV_PHASE1)
+        articles_to_process_phase1 = [
             a for a in articles 
-            if a.bibtex_id not in already_processed
+            if a.bibtex_id not in already_processed_phase1
         ]
         
-        logger.info(f"Articles already processed: {len(already_processed)}")
-        logger.info(f"Articles to process: {len(articles_to_process)}")
+        logger.info(f"Articles already processed in Phase 1: {len(already_processed_phase1)}")
+        logger.info(f"Articles to process in Phase 1: {len(articles_to_process_phase1)}")
         
-        if not articles_to_process:
-            logger.info("All articles have already been processed!")
-            stats = CSVHandler.get_statistics(Config.OUTPUT_CSV_FILE)
-            _print_statistics(stats)
-            return
-        
-        # Criar avaliador
-        # Use PromptBuilder.create_v1_0() para português
-        # Use PromptBuilderEnglish.create_v2_0() para inglês
-        prompt_builder = PromptBuilderEnglish.create_v2_0()
-        evaluator = ArticleEvaluator(prompt_builder=prompt_builder)
-        
-        logger.info("Article Evaluator initialized")
-        logger.info(f"Model: {evaluator.llm_client.model}")
-        logger.info(f"Prompt version: {prompt_builder.get_version()}")
-        
-        # Processar artigos com barra de progresso
-        logger.info("Starting article evaluation...")
-        
-        try:
-            for article in tqdm(
-                articles_to_process, 
-                desc="Evaluating articles",
-                unit="article"
-            ):
-                try:
-                    # Avaliar artigo
-                    result = evaluator.evaluate(article)
-                    
-                    # Salvar resultado incrementalmente no CSV
-                    CSVHandler.write_result(Config.OUTPUT_CSV_FILE, result)
+        if articles_to_process_phase1:
+            prompt_builder_phase1 = PromptBuilderPhase1()
+            evaluator_phase1 = ArticleEvaluator(prompt_builder=prompt_builder_phase1)
+            
+            logger.info(f"Prompt builder: {prompt_builder_phase1.__class__.__name__}")
+            
+            try:
+                for article in tqdm(
+                    articles_to_process_phase1,
+                    desc="Phase 1: Evaluating articles",
+                    unit="article"
+                ):
+                    try:
+                        result = evaluator_phase1.evaluate(article)
+                        CSVHandler.write_result(Config.OUTPUT_CSV_PHASE1, result)
+                    except Exception as e:
+                        logger.error(f"Error evaluating article {article.bibtex_id} (Phase 1): {str(e)}")
+                        continue
                 
-                except Exception as e:
-                    logger.error(f"Error evaluating article {article.bibtex_id}: {str(e)}")
-                    # Continua com próximo artigo
-                    continue
+                logger.info("Phase 1 screening completed successfully")
             
-            logger.info("Article evaluation completed successfully")
-            
-            # Ler resultados do CSV completo
-            #logger.info("Reading evaluation results from CSV...")
-            #csv_results = CSVHandler.read_results(Config.OUTPUT_CSV_FILE)
-            #
-            # Atualizar arquivo BibTeX com resultados da avaliação lidos do CSV
-            #if csv_results:
-            #    logger.info(f"Updating BibTeX file with {len(csv_results)} evaluation results...")
-            #    BibTexHandler.update_evaluation_notes_from_csv(
-            #        Config.INPUT_BIB_FILE,
-            #        csv_results
-            #    )
-            #    logger.info(f"BibTeX file updated: {Config.INPUT_BIB_FILE}")
-            
-            logger.info("=" * 80)
-            logger.info("SLR LLM Reviewer finished successfully")
-            logger.info("=" * 80)
-            logger.info(f"Results saved to: {Config.OUTPUT_CSV_FILE}")
-            logger.info(f"BibTeX file updated: {Config.INPUT_BIB_FILE}")
+            except KeyboardInterrupt:
+                logger.warning("Phase 1 interrupted by user")
+                sys.exit(130)
+        else:
+            logger.info("All articles already processed in Phase 1")
         
-        except KeyboardInterrupt:
-            logger.warning("Processing interrupted by user")
-            logger.warning("Partial results have been saved")
-            sys.exit(130)
+        # ====== FASE 2: Strict Screening ======
+        logger.info("=" * 80)
+        logger.info("PHASE 2: Strict Screening (High Precision)")
+        logger.info("=" * 80)
+        
+        # Ler resultados da Phase 1 (apenas os "include" e "maybe")
+        phase1_results = CSVHandler.read_results(Config.OUTPUT_CSV_PHASE1)
+        articles_for_phase2 = [
+            r for r in phase1_results 
+            if r.get("decision") in ["include", "maybe"]
+        ]
+        
+        logger.info(f"Articles from Phase 1 for Phase 2: {len(articles_for_phase2)}")
+        
+        already_processed_phase2 = CSVHandler.get_processed_ids(Config.OUTPUT_CSV_PHASE2)
+        articles_to_process_phase2 = [
+            a for a in articles 
+            if a.bibtex_id in [r.get("bibtex_id") for r in articles_for_phase2]
+            and a.bibtex_id not in already_processed_phase2
+        ]
+        
+        logger.info(f"Articles already processed in Phase 2: {len(already_processed_phase2)}")
+        logger.info(f"Articles to process in Phase 2: {len(articles_to_process_phase2)}")
+        
+        if articles_to_process_phase2:
+            prompt_builder_phase2 = PromptBuilderPhase2()
+            evaluator_phase2 = ArticleEvaluator(prompt_builder=prompt_builder_phase2)
+            
+            logger.info(f"Prompt builder: {prompt_builder_phase2.__class__.__name__}")
+            
+            try:
+                for article in tqdm(
+                    articles_to_process_phase2,
+                    desc="Phase 2: Evaluating articles",
+                    unit="article"
+                ):
+                    try:
+                        result = evaluator_phase2.evaluate(article)
+                        CSVHandler.write_result(Config.OUTPUT_CSV_PHASE2, result)
+                    except Exception as e:
+                        logger.error(f"Error evaluating article {article.bibtex_id} (Phase 2): {str(e)}")
+                        continue
+                
+                logger.info("Phase 2 screening completed successfully")
+            
+            except KeyboardInterrupt:
+                logger.warning("Phase 2 interrupted by user")
+                sys.exit(130)
+        else:
+            logger.info("No articles to process in Phase 2")
+        
+        # ====== RESUMO FINAL ======
+        logger.info("=" * 80)
+        logger.info("Two-Stage Screening Finished Successfully")
+        logger.info("=" * 80)
+        logger.info(f"Phase 1 results saved to: {Config.OUTPUT_CSV_PHASE1}")
+        logger.info(f"Phase 2 results saved to: {Config.OUTPUT_CSV_PHASE2}")
     
     except ValueError as e:
         logger.error(f"Configuration error: {str(e)}")

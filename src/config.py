@@ -38,7 +38,14 @@ class Config:
     LOGS_DIR: str = os.path.join(BASE_DIR, "logs")
     
     INPUT_BIB_FILE: str = os.path.join(INPUT_DIR, "articles.bib")
+    
+    # CSV files for two-stage screening
+    OUTPUT_CSV_PHASE1: str = os.path.join(OUTPUT_DIR, "artigos_fase1_screening.csv")
+    OUTPUT_CSV_PHASE2: str = os.path.join(OUTPUT_DIR, "artigos_fase2_screening.csv")
+    
+    # Legacy (deprecated)
     OUTPUT_CSV_FILE: str = os.path.join(OUTPUT_DIR, "artigos_avaliados_v2.csv")
+    
     LOG_FILE: str = os.path.join(LOGS_DIR, "slr_reviewer.log")
     
     # ====== LOGGING ======
@@ -91,6 +98,7 @@ class Config:
             "TIMEOUT_SECONDS": cls.TIMEOUT_SECONDS,
             "PROMPT_VERSION": cls.PROMPT_VERSION,
             "INPUT_BIB_FILE": cls.INPUT_BIB_FILE,
-            "OUTPUT_CSV_FILE": cls.OUTPUT_CSV_FILE,
+            "OUTPUT_CSV_PHASE1": cls.OUTPUT_CSV_PHASE1,
+            "OUTPUT_CSV_PHASE2": cls.OUTPUT_CSV_PHASE2,
             "LOG_FILE": cls.LOG_FILE,
         }
