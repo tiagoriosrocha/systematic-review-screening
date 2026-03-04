@@ -1,1 +1,35 @@
 Execução com prompt em 1 fase em pt-br
+
+
+    SYSTEM_PROMPT = "You are an expert in evaluating scientific articles for systematic literature reviews. You must respond exclusively in valid JSON format without any markdown code blocks or additional text."
+
+    INCLUSION_CRITERIA = """
+    CRITÉRIOS DE INCLUSÃO:
+    
+    IC1. Artigos onde Digital Twin é um conceito central da arquitetura, sistema ou framework proposto.
+    
+    IC2. Artigos que propõem, implementam, avaliam ou discutem formalmente técnicas de explicabilidade,
+         interpretabilidade, transparência ou XAI (eXplainable AI) no contexto de Digital Twins.
+    
+    IC3. Artigos que explicitamente definem papéis humanos (ex: operador, tomador de decisão) ou
+         incorporam mecanismos de human-in-the-loop, human-on-the-loop ou interação centrada no
+         humano dentro do sistema de Digital Twin.
+    
+    IC4. Artigos que descrevem ou avaliam o processo de explicação, arquitetura ou design de
+         interação dentro de um sistema de Digital Twin.
+    """
+    
+    EXCLUSION_CRITERIA = """
+    CRITÉRIOS DE EXCLUSÃO:
+    
+    EC1. Artigos não relacionados a Digital Twins.
+    
+    EC2. Artigos que aplicam modelos preditivos dentro de Digital Twins sem propor, avaliar ou
+         discutir mecanismos de explicabilidade ou interpretabilidade.
+    
+    EC3. Resumos curtos, posters, tutoriais, material não revisado por pares, estudos secundários
+         ou revisões sistemáticas.
+    
+    EC4. Publicações em idiomas que não inglês (artigos em português ou espanhol devem ter
+         versão ou resumo em inglês).
+    """

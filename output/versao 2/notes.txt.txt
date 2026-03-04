@@ -1,1 +1,38 @@
 Execução com prompt em 1 fase em en
+
+
+    PROMPT_SYSTEM = "You are an expert in evaluating scientific articles for systematic literature reviews. You must respond exclusively in valid JSON format without any markdown code blocks or additional text."
+
+    INCLUSION_CRITERIA = """
+    INCLUSION CRITERIA:
+    
+    IC1. Articles where Digital Twin is a central concept of the proposed architecture, system, or framework.
+    
+    IC2. Articles that propose, implement, evaluate, or formally discuss explainability, 
+         interpretability, transparency, or XAI (eXplainable AI) techniques in the context of Digital Twins.
+    
+    IC3. Articles that explicitly define human roles (e.g., operator, decision-maker) or 
+         incorporate human-in-the-loop, human-on-the-loop, or human-centered interaction mechanisms 
+         within the Digital Twin system.
+    
+    IC4. Articles that describe or evaluate the explanation process, architecture, or interaction 
+         design within a Digital Twin system.
+    """
+
+    EXCLUSION_CRITERIA = """
+    EXCLUSION CRITERIA:
+    
+    EC1. Articles not related to Digital Twins.
+    
+    EC2. Articles that apply predictive models within Digital Twins without proposing, evaluating, 
+         or discussing explainability or interpretability mechanisms.
+    
+    EC3. Short abstracts, posters, tutorials, non-peer-reviewed material, secondary studies, 
+         or systematic reviews.
+    
+    EC4. Publications in languages other than English (articles in Portuguese or Spanish must have 
+         an English version or abstract).
+    """
+
+    Prompt = "Task: Evaluate whether a scientific article should be included in a Systematic Literature Review (SLR) focused on:
+        Digital Twins + Explainable AI (XAI) + Human-centered approaches." ....
