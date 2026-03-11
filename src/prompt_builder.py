@@ -16,6 +16,8 @@ class PromptBuilder(ABC):
     
     Define a interface comum para diferentes implementações de construtores de prompts.
     """
+
+    SYSTEM_PROMPT: str
     
     def get_system_message(self) -> str:
         """
