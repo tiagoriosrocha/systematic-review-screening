@@ -165,9 +165,6 @@ class PromptBuilderPhase1(PromptBuilder):
         ID: {article.bibtex_id}
         Title: {article.title}
         Year: {article.year}
-        Authors: {article.authors if article.authors else "Not provided"}
-        Journal: {article.journal if article.journal else "Not provided"}
-        DOI: {article.doi if article.doi else "Not provided"}
         Abstract: {article.abstract if article.abstract else "Not provided"}
 
         {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
@@ -290,10 +287,6 @@ class PromptBuilderPhase2(PromptBuilder):
         ID: {article.bibtex_id}
         Title: {article.title}
         Year: {article.year}
-        Authors: {article.authors if article.authors else "Not provided"}
-        Journal: {article.journal if article.journal else "Not provided"}
-        DOI: {article.doi if article.doi else "Not provided"}
-        URL: {article.url if article.url else "Not provided"}
         Abstract: {article.abstract if article.abstract else "Not provided"}
 
         {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
@@ -422,9 +415,6 @@ class PromptBuilderPhase3(PromptBuilder):
         ID: {article.bibtex_id}
         Title: {article.title}
         Year: {article.year}
-        Authors: {article.authors if article.authors else "Not provided"}
-        Journal: {article.journal if article.journal else "Not provided"}
-        DOI: {article.doi if article.doi else "Not provided"}
         Abstract: {article.abstract if article.abstract else "Not provided"}
 
         ============================================================
