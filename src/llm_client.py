@@ -34,6 +34,7 @@ class LLMClient:
         self.max_retries = Config.MAX_RETRIES
         self.retry_delay = Config.RETRY_DELAY_SECONDS
         self.timeout = Config.TIMEOUT_SECONDS
+        self.max_tokens = Config.LLM_MAX_TOKENS
         
         logger.info(f"LLM Client initialized with model: {self.model}")
     
@@ -61,6 +62,7 @@ class LLMClient:
                     messages=messages,
                     #temperature=self.temperature,
                     timeout=self.timeout,
+                    #max_completion_tokens=self.max_tokens,
                 )
                 
                 # Extrai o conteúdo da resposta

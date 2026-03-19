@@ -21,7 +21,8 @@ class Config:
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
     LLM_ENDPOINT: str = os.getenv("LLM_ENDPOINT", "")
     LLM_API_VERSION: str = os.getenv("LLM_API_VERSION", "2024-02-15")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-5-2-petrobras")
+    LLM_MAX_TOKENS: str = os.getenv("LLM_MAX_TOKENS", "400000")
     
     # ====== CONFIGURAÇÕES DE PROCESSAMENTO ======
     TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.7"))

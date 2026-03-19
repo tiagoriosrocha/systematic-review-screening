@@ -1,0 +1,1 @@
+o mesmo que a versão 5, porém usando o modelo gpt-5.2
