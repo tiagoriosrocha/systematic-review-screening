@@ -168,6 +168,7 @@ class PromptBuilderPhase1(PromptBuilder):
         Title: {article.title}
         Year: {article.year}
         Abstract: {article.abstract if article.abstract else "Not provided"}
+        Journal: {article.journal if article.journal else "Not provided"}
 
         {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
 
@@ -290,6 +291,7 @@ class PromptBuilderPhase2(PromptBuilder):
         Title: {article.title}
         Year: {article.year}
         Abstract: {article.abstract if article.abstract else "Not provided"}
+        Journal: {article.journal if article.journal else "Not provided"}
 
         {f"ADDITIONAL CONTEXT:\n{criteria_context}\n" if criteria_context else ""}
 
@@ -418,6 +420,7 @@ class PromptBuilderPhase3(PromptBuilder):
         Title: {article.title}
         Year: {article.year}
         Abstract: {article.abstract if article.abstract else "Not provided"}
+        Journal: {article.journal if article.journal else "Not provided"}
 
         ============================================================
         DECISION RULES FOR PHASE 3:
