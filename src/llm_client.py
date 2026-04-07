@@ -56,6 +56,7 @@ class LLMClient:
         for attempt in range(1, self.max_retries + 1):
             try:
                 logger.debug(f"Calling LLM (attempt {attempt}/{self.max_retries})")
+                logger.debug(f"Request messages: {messages}")
                 
                 response = self.client.chat.completions.create(
                     model=self.model,

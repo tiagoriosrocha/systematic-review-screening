@@ -23,6 +23,7 @@ class CSVHandler:
     FIELDNAMES = [
         "bibtex_id",
         "title",
+        "abstract",
         "decision",
         "justification",
         "model_name",
@@ -66,6 +67,7 @@ class CSVHandler:
             writer.writerow({
                 "bibtex_id": result.bibtex_id,
                 "title": result.title,
+                "abstract": result.abstract,
                 "decision": result.evaluation.decision,
                 "justification": result.evaluation.justification,
                 "model_name": result.model_name,

@@ -87,6 +87,7 @@ class ArticleEvaluator:
             result = EvaluationResult(
                 bibtex_id=article.bibtex_id,
                 title=article.title,
+                abstract=article.abstract,
                 evaluation=evaluation,
                 model_name=Config.LLM_MODEL,
                 prompt_version=self.prompt_builder.__class__.__name__,

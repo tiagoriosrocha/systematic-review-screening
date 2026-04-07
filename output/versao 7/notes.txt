@@ -1,0 +1,1 @@
+adicionei o journal no prompt, atualizei os bibtex com todos tendo abstract, rodando no modelo gpt-petrobras-5-2

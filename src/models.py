@@ -90,6 +90,7 @@ class EvaluationResult(BaseModel):
     
     bibtex_id: str = Field(..., description="ID único do artigo")
     title: str = Field(..., description="Título do artigo")
+    abstract: str = Field(default="", description="Resumo do artigo")
     evaluation: ArticleEvaluation = Field(..., description="Avaliação do artigo")
     model_name: str = Field(..., description="Nome do modelo LLM utilizado")
     prompt_version: str = Field(..., description="Versão do prompt utilizado")
