@@ -5,10 +5,13 @@ Este módulo fornece funcionalidade de low-level para chamar o LLM
 com tratamento de erros, retry automático e logging.
 """
 
-import time
 import json
 import logging
+import ssl
+import time
 from typing import Dict, Any, Optional
+
+import httpx
 from openai import AzureOpenAI, APIError, APITimeoutError, RateLimitError
 
 from src.config import Config
@@ -24,10 +27,12 @@ class LLMClient:
     
     def __init__(self):
         """Inicializa o cliente Azure OpenAI."""
+        self.http_client = self._build_http_client()
         self.client = AzureOpenAI(
             api_key=Config.LLM_API_KEY,
             api_version=Config.LLM_API_VERSION,
             base_url=Config.LLM_ENDPOINT,
+            http_client=self.http_client,
         )
         self.model = Config.LLM_MODEL
         self.temperature = Config.TEMPERATURE
@@ -37,6 +42,25 @@ class LLMClient:
         self.max_tokens = Config.LLM_MAX_TOKENS
         
         logger.info(f"LLM Client initialized with model: {self.model}")
+
+    @staticmethod
+    def _build_http_client() -> Optional[httpx.Client]:
+        """Builds the HTTP client used by the OpenAI SDK."""
+        if not Config.LLM_SSL_SECURITY_LEVEL:
+            return None
+
+        security_level = int(Config.LLM_SSL_SECURITY_LEVEL)
+        ssl_context = ssl.create_default_context()
+        ssl_context.set_ciphers(f"DEFAULT@SECLEVEL={security_level}")
+
+        if security_level < 2:
+            logger.warning(
+                "Using OpenSSL security level %s for LLM HTTPS calls. "
+                "Certificate verification remains enabled.",
+                security_level,
+            )
+
+        return httpx.Client(verify=ssl_context)
     
     def call_llm(self, messages: list[dict]) -> str:
         """
@@ -56,7 +80,11 @@ class LLMClient:
         for attempt in range(1, self.max_retries + 1):
             try:
                 logger.debug(f"Calling LLM (attempt {attempt}/{self.max_retries})")
-                logger.debug(f"Request messages: {messages}")
+                logger.debug(
+                    "Request messages prepared (count=%s, chars=%s)",
+                    len(messages),
+                    sum(len(message.get("content", "")) for message in messages),
+                )
                 
                 response = self.client.chat.completions.create(
                     model=self.model,

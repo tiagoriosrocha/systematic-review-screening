@@ -23,6 +23,7 @@ class Config:
     LLM_API_VERSION: str = os.getenv("LLM_API_VERSION", "2024-02-15")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-5-2-petrobras")
     LLM_MAX_TOKENS: str = os.getenv("LLM_MAX_TOKENS", "400000")
+    LLM_SSL_SECURITY_LEVEL: str = os.getenv("LLM_SSL_SECURITY_LEVEL", "0")
     
     # ====== CONFIGURAÇÕES DE PROCESSAMENTO ======
     TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.7"))
@@ -76,6 +77,19 @@ class Config:
             raise ValueError("LLM_MODEL não foi configurada no arquivo .env")
         
         # Valida temperatura
+        if cls.LLM_SSL_SECURITY_LEVEL:
+            try:
+                security_level = int(cls.LLM_SSL_SECURITY_LEVEL)
+            except ValueError as exc:
+                raise ValueError(
+                    "LLM_SSL_SECURITY_LEVEL deve ser um inteiro entre 0 e 5"
+                ) from exc
+
+            if not 0 <= security_level <= 5:
+                raise ValueError(
+                    f"LLM_SSL_SECURITY_LEVEL deve estar entre 0 e 5, recebido: {security_level}"
+                )
+
         if not 0.0 <= cls.TEMPERATURE <= 2.0:
             raise ValueError(
                 f"TEMPERATURE deve estar entre 0.0 e 2.0, recebido: {cls.TEMPERATURE}"
@@ -98,6 +112,7 @@ class Config:
             "LLM_ENDPOINT": cls.LLM_ENDPOINT,
             "LLM_API_VERSION": cls.LLM_API_VERSION,
             "LLM_MODEL": cls.LLM_MODEL,
+            "LLM_SSL_SECURITY_LEVEL": cls.LLM_SSL_SECURITY_LEVEL,
             "TEMPERATURE": cls.TEMPERATURE,
             "MAX_RETRIES": cls.MAX_RETRIES,
             "RETRY_DELAY_SECONDS": cls.RETRY_DELAY_SECONDS,

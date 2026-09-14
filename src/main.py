@@ -24,13 +24,17 @@ from src.prompt_builder import PromptBuilderPhase1, PromptBuilderPhase2, PromptB
 # Configurar logging
 def setup_logging():
     """Configura o sistema de logging."""
+
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     
     # Create logger
     logger = logging.getLogger()
     logger.setLevel(getattr(logging, Config.LOG_LEVEL))
+    logger.handlers.clear()
     
     # File handler
-    file_handler = logging.FileHandler(Config.LOG_FILE)
+    file_handler = logging.FileHandler(Config.LOG_FILE, encoding="utf-8")
     file_handler.setLevel(getattr(logging, Config.LOG_LEVEL))
     file_handler.setFormatter(logging.Formatter(Config.LOG_FORMAT))
     
@@ -41,6 +45,9 @@ def setup_logging():
     
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+
+    for logger_name in ("openai", "httpx", "httpcore"):
+        logging.getLogger(logger_name).setLevel(logging.WARNING)
     
     return logger
 
